@@ -17,7 +17,7 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
+Route::get('/home', 'HomeController@index')->name('home')->middleware('verified');
 
 Route::get('/admin', function () {
     return view('plantilla.admin');
@@ -26,6 +26,11 @@ Route::get('/admin', function () {
 Route::resource('admin/company', 'Admin\AdminCompanyController')->names('admin.company');
 
 Route::resource('admin/manager', 'Admin\AdminManagerController')->names('admin.manager');
+
+
+
+// E-mail verification
+Route::get('/register/verify/{code}', 'Auth\RegisterController@verify');
 
 
 Route::get('cancelar/{ruta}', function($ruta) {

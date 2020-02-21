@@ -8,6 +8,8 @@ use App\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Mail;
 
 class RegisterController extends Controller
 {
@@ -64,10 +66,34 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $data['confirmation_code'] =  Str::random(25);
+        $user =  User::create([
+            
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'confirmation_code' => $data['confirmation_code']
         ]);
+
+        // Send confirmation code
+        Mail::send('auth.verify', $data, function($message) use ($data) {
+        $message->to($data['email'], $data['name'])->subject('Por favor confirma tu correo');});
+        
+        return $user;
+       
     }
+
+    public function verify($code)
+{
+    $user = User::where('confirmation_code', $code)->first();
+
+    if (! $user)
+        return redirect('/');
+
+    $user->confirmed = true;
+    $user->confirmation_code = null;
+    $user->save();
+
+    return redirect('/login')->with('notification', 'Has confirmado correctamente tu correo!');
+}   
 }
